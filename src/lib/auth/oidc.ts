@@ -22,6 +22,20 @@ import type { Config } from "@/lib/config";
 
 let configuration: client.Configuration | undefined;
 
+// HTTP Basic client auth, sent LITERALLY (RFC 7617): base64("clientId:secret").
+// openid-client's built-in ClientSecretBasic form-url-encodes the credentials per
+// RFC 6749 §2.3.1 (so `-`→%2D, `_`→%5F), but Authlete decodes Basic literally — the
+// two disagree whenever the secret has reserved chars, and the token endpoint 401s
+// with a WWW-Authenticate challenge. Sending literal Basic works for any secret.
+function literalBasicAuth(config: Config): client.ClientAuth {
+  return (_as, _client, _body, headers) => {
+    const cred = Buffer.from(`${config.oidcClientId}:${config.oidcClientSecret}`).toString(
+      "base64",
+    );
+    headers.set("authorization", `Basic ${cred}`);
+  };
+}
+
 function oidc(config: Config): client.Configuration {
   if (!configuration) {
     configuration = new client.Configuration(
@@ -33,7 +47,7 @@ function oidc(config: Config): client.Configuration {
       },
       config.oidcClientId,
       {},
-      client.ClientSecretBasic(config.oidcClientSecret),
+      literalBasicAuth(config),
     );
     // Dev AS runs on http://localhost — allow the non-HTTPS token/JWKS calls.
     if (!config.asBaseUrl.startsWith("https://")) {
