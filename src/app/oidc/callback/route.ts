@@ -20,7 +20,14 @@ function errorRedirect(reason: string) {
 }
 
 export async function GET(req: NextRequest) {
-  if (req.nextUrl.searchParams.get("error")) return errorRedirect("signin_failed");
+  // The AS bounced back an OAuth error. Keep the user-facing message generic (no
+  // raw protocol details), but log the real error so operators can diagnose.
+  const asError = req.nextUrl.searchParams.get("error");
+  if (asError) {
+    const desc = req.nextUrl.searchParams.get("error_description") ?? "";
+    console.error(`[oidc/callback] AS error: ${asError} — ${desc}`);
+    return errorRedirect("signin_failed");
+  }
 
   const txToken = await readTxToken();
   await clearTx();

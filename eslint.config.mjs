@@ -12,16 +12,7 @@ import prettier from "eslint-config-prettier";
  */
 const config = [
   {
-    ignores: [
-      ".next/**",
-      "dist/**",
-      "data/**",
-      "test-results/**",
-      "playwright-report/**",
-      ".old-hono/**",
-      ".trash/**",
-      "src/components/ui/**",
-    ],
+    ignores: [".next/**", "dist/**", "data/**", ".context/**", "src/components/ui/**"],
   },
   ...next,
   ...nextTypescript,
