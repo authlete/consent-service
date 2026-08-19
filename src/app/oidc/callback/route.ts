@@ -48,7 +48,25 @@ export async function GET(req: NextRequest) {
   try {
     signer = await completeLogin(config, new URL(req.url), verifier, state);
   } catch (err) {
-    console.error("[oidc/callback] sign-in failed:", (err as Error).message);
+    // openid-client puts the useful detail in code/error/cause, not just message
+    // (token-endpoint OAuth error, WWW-Authenticate challenge, id_token iss/aud/exp
+    // mismatch, JWKS fetch). Log it all so the failure is diagnosable in the logs.
+    const e = err as {
+      name?: string;
+      code?: string;
+      message?: string;
+      error?: string;
+      error_description?: string;
+      cause?: unknown;
+    };
+    console.error("[oidc/callback] token exchange / id_token validation failed:", {
+      name: e.name,
+      code: e.code,
+      message: e.message,
+      error: e.error,
+      error_description: e.error_description,
+      cause: e.cause,
+    });
     return errorRedirect("signin_failed");
   }
 
