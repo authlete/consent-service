@@ -22,6 +22,8 @@ function optional(name: string, fallback: string): string {
 
 export interface Config {
   databaseUrl: string;
+  // Turso/remote libSQL auth token; empty for a local file: database.
+  databaseAuthToken: string;
   consentBaseUrl: string;
   asBaseUrl: string;
   asIssuerId: string;
@@ -45,6 +47,7 @@ export function fromEnv(): Config {
   const asBaseUrl = required("AS_BASE_URL");
   return {
     databaseUrl: optional("DATABASE_URL", "file:./data/consent.sqlite"),
+    databaseAuthToken: optional("DATABASE_AUTH_TOKEN", ""),
     consentBaseUrl,
     asBaseUrl,
     asIssuerId: asBaseUrl,

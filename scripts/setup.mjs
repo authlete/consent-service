@@ -33,13 +33,14 @@ function fill(name, value, description) {
 fill("CONSENT_SIGNING_JWKS", await generateJwks(), "ES256 signing key");
 writeFileSync(".env", env);
 
+const envText = readFileSync(".env", "utf-8");
 const url =
-  (readFileSync(".env", "utf-8").match(/^DATABASE_URL=(.*)$/m)?.[1] ?? "").trim() ||
-  "file:./data/consent.sqlite";
+  (envText.match(/^DATABASE_URL=(.*)$/m)?.[1] ?? "").trim() || "file:./data/consent.sqlite";
+const authToken = (envText.match(/^DATABASE_AUTH_TOKEN=(.*)$/m)?.[1] ?? "").trim();
 if (url.startsWith("file:")) mkdirSync("data", { recursive: true });
 
 const schema = readFileSync(new URL("../src/lib/db/schema.sql", import.meta.url), "utf-8");
-const db = createClient({ url });
+const db = createClient({ url, authToken: authToken || undefined });
 await db.executeMultiple(schema);
 log(`migrated schema → ${url}`);
 log("done — `npm run dev` to start");

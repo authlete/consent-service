@@ -6,6 +6,11 @@ import type { Config } from "@/lib/config";
 let client: Client | undefined;
 
 export function db(config: Config): Client {
-  if (!client) client = createClient({ url: config.databaseUrl });
+  if (!client) {
+    client = createClient({
+      url: config.databaseUrl,
+      authToken: config.databaseAuthToken || undefined, // set for Turso/remote libSQL
+    });
+  }
   return client;
 }
